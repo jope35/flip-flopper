@@ -1,16 +1,16 @@
 endpoint_name: flip-flopper-dev
-catalog: main
+catalog: workspace
 schema: serving
-inference_table: main.serving.flip_flopper_payload
-feedback_table: main.serving.flip_flopper_feedback
-state_table: main.serving.flip_flopper_controller_state
+inference_table: workspace.serving.flip_flopper_payload
+feedback_table: workspace.serving.flip_flopper_feedback
+state_table: workspace.serving.flip_flopper_controller_state
 control:
   name: control
-  entity_name: main.models.recommender
+  entity_name: workspace.models.recommender
   entity_version: "1"
 challenger:
   name: challenger
-  entity_name: main.models.recommender
+  entity_name: workspace.models.recommender
   entity_version: "2"
 gateway_schema:
   request_id_column: client_request_id

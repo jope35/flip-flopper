@@ -20,5 +20,9 @@ targets:
   dev:
     default: true
     mode: development
+    workspace:
+      host: https://dbc-b9d925fd-a82e.cloud.databricks.com
   prod:
     mode: production
+    workspace:
+      host: https://dbc-b9d925fd-a82e.cloud.databricks.com
