@@ -1,8 +1,8 @@
-"""Scheduled traffic controller entrypoint (orchestration to be wired to ControllerService)."""
-
 import argparse
 
 from flip_flopper_ab_test.config import load_config
+from flip_flopper_ab_test.controller import ControllerService
+from flip_flopper_ab_test.databricks_api import ServingEndpointClient
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,16 +21,18 @@ def main() -> None:
 
     args = parse_args()
     config = load_config(args.config_yaml)
-    _ = SparkSession.builder.getOrCreate()
-    # ControllerService integration pending (metrics, policy, endpoint updates).
-    _ = (
-        args.current_control_percent,
-        args.current_challenger_percent,
-        args.last_good_control_percent,
-        args.last_good_challenger_percent,
-        args.shadow_mode,
+    spark = SparkSession.builder.getOrCreate()
+    ControllerService(
+        spark=spark,
+        serving_client=ServingEndpointClient(),
+        config=config,
+    ).run(
+        current_control_percent=args.current_control_percent,
+        current_challenger_percent=args.current_challenger_percent,
+        last_good_control_percent=args.last_good_control_percent,
+        last_good_challenger_percent=args.last_good_challenger_percent,
+        shadow_mode=args.shadow_mode == "true",
     )
-    print(f"Loaded config for endpoint: {config.get('endpoint_name')}")
 
 
 if __name__ == "__main__":
