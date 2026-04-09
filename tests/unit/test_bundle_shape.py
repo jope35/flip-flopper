@@ -1,4 +1,3 @@
-# tests/unit/test_bundle_shape.py
 from pathlib import Path
 
 

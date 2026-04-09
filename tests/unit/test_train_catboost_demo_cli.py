@@ -1,4 +1,3 @@
-# tests/unit/test_train_catboost_demo_cli.py
 from __future__ import annotations
 
 import importlib.util
