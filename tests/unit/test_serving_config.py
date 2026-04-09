@@ -5,7 +5,8 @@ from flip_flopper_ab_test.serving_config import build_endpoint_core_config
 
 
 def make_config() -> dict:
-    return load_config(Path(__file__).resolve().parent.parent / "fixtures" / "app_config.yaml")
+    root = Path(__file__).resolve().parents[2]
+    return load_config(root / "config" / "app.yaml")
 
 
 def test_build_endpoint_core_config_contains_two_routes() -> None:

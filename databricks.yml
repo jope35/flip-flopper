@@ -1,0 +1,24 @@
+bundle:
+  name: flip-flopper-serving-ab-test
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    default: main
+  schema:
+    default: serving
+  endpoint_name:
+    default: flip-flopper-dev
+  app_config_path:
+    default: config/app.yaml
+  controller_cron:
+    default: "0 0 * * * ?"
+
+targets:
+  dev:
+    default: true
+    mode: development
+  prod:
+    mode: production
