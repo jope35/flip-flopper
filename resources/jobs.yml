@@ -1,0 +1,23 @@
+resources:
+  jobs:
+    train_catboost_demo:
+      name: "[${bundle.target}] train catboost demo"
+      environments:
+        - environment_key: catboost_train_env
+          spec:
+            client: "4"
+            dependencies:
+              - catboost>=1.2
+              - scikit-learn>=1.4.0
+      tasks:
+        - task_key: train_catboost_demo
+          environment_key: catboost_train_env
+          spark_python_task:
+            python_file: ../src/jobs/train_catboost_demo.py
+            parameters:
+              - --catalog
+              - ${var.catalog}
+              - --schema
+              - ${var.schema}
+              - --experiment-name
+              - ${var.catboost_experiment_name}
