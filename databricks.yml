@@ -4,24 +4,33 @@ bundle:
 include:
   - resources/*.yml
 
+artifacts:
+  flip_flopper:
+    type: whl
+    path: .
+    build: uv build --wheel
+    dynamic_version: true
+    files:
+      - source: ./dist/*.whl
+
 variables:
   catalog:
-    default: main
-  schema:
-    default: serving
-  endpoint_name:
-    default: flip-flopper-dev
-  app_config_path:
-    default: config/app.yaml
-  controller_cron:
-    default: "0 0 * * * ?"
-  catboost_experiment_name:
-    default: /Shared/flip-flopper/catboost-demo
+    default: workspace
+  dummy_data_table_name:
+    default: generated_data
+  classifier_experiment_name:
+    default: flip_flopper_classifier
+
+resources:
+  schemas:
+    default:
+      name: flip_flopper
+      catalog_name: ${var.catalog}
+
 
 targets:
   dev:
     default: true
-    mode: development
     workspace:
       host: https://dbc-b9d925fd-a82e.cloud.databricks.com
   prod:

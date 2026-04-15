@@ -1,0 +1,9 @@
+# Python / uv wheel build outputs
+dist/
+build/
+*.egg-info/
+.eggs/
+*.egg
+
+# Databricks bundle local state
+.databricks/
