@@ -11,7 +11,7 @@
 
 - This repo is meant to be open-sourced; keep changes simple and easy to understand (KISS).
 - Classifier training notebooks default the `table_name` widget to `generated_data`; bundle jobs must point at a table that exists (for example run the `create_dummy_data` job first) or override `table_name` / job parameters accordingly.
-- Sklearn RBF `SVC(probability=True)` is much more sensitive to training row count and runtime than tree models; when copying RF-style training notebooks, keep conservative `max_training_rows` defaults or add explicit size/runtime warnings.
+- Sklearn RBF `SVC(probability=True)` is much more sensitive to training row count and runtime than tree models; when copying RF-style training notebooks, keep conservative `max_training_rows` defaults or add explicit size/runtime warnings. For classifier B's ONNX path, keep empty imputed features (`SimpleImputer(..., keep_empty_features=True)`) and log effective gamma via `_gamma` rather than `gamma_`.
 - Each Databricks bundle job task must declare compute: `new_cluster`, `job_cluster_key`, `existing_cluster_id`, or `environment_key`; a bare task without one fails bundle validation.
 - For classic single-node driver-only job clusters in this bundle, use `spark_version` 16.1.x-scala2.12, `node_type_id` i3.xlarge, `num_workers` 0, `spark.master` local[*], `spark.databricks.cluster.profile` singleNode, and `custom_tags` ResourceClass SingleNode.
 - Serverless job tasks use job-level `environments` (for example `spec.environment_version` and `dependencies` for PyPI packages or `../dist/*.whl`) and the task `environment_key`; omit cluster fields on those tasks.
@@ -20,6 +20,7 @@
 - The bundle defines a wheel artifact (`artifacts.flip_flopper` with `build: uv build --wheel`); serverless job `environments` often list `../dist/*.whl` under `spec.dependencies` (path relative to the `resources/` file) so tasks install the built package.
 - Unity Catalog requires MLflow models registered to UC to include full signature metadata (inputs and outputs). For `mlflow.onnx.log_model`, pass `signature=` (for example from `infer_signature` after an ONNX Runtime forward pass with representative tensors)—`input_example` alone may not populate what UC expects for ONNX.
 - Jobs parameterize catalog and schema via bundle variables and schema resources (for example `${var.catalog}` and `${resources.schemas.default.name}`); notebook widget defaults may use project naming like `flip_flopper` where configured.
+- The `deploy_classifier_endpoint` bundle job creates/updates the serving endpoint by resolving UC model aliases to concrete versions (`Champion` for model `_a`, `Challenger` for model `_b` by default); ensure those aliases exist before running it.
 
 
 
