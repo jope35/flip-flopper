@@ -16,7 +16,9 @@ dependencies = [
 dev = ["pre-commit>=4.0.0", "pytest>=8.3.5", "ruff>=0.11.0"]
 
 [tool.ruff]
-exclude = [".claude", ".cursor", ".databricks", ".vscode", ".pytest_cache"]
+extend-exclude = [".claude", ".cursor", ".databricks"]
+
+[tool.ruff.lint]
 builtins = ["dbutils", "spark"]
 
 [tool.pytest.ini_options]
