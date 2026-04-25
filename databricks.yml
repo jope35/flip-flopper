@@ -20,6 +20,22 @@ variables:
     default: generated_data
   classifier_experiment_name:
     default: flip_flopper_classifier
+  classifier_serving_endpoint_name:
+    default: flip_flopper_classifier_endpoint
+  classifier_registered_model_suffix:
+    default: ${var.classifier_experiment_name}
+  classifier_alias_champion:
+    default: Champion
+  classifier_alias_challenger:
+    default: Challenger
+  classifier_traffic_pct_champion:
+    default: "50"
+  classifier_traffic_pct_challenger:
+    default: "50"
+  classifier_serving_workload_size:
+    default: Small
+  classifier_serving_scale_to_zero:
+    default: "true"
 
 resources:
   schemas:

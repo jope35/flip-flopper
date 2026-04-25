@@ -1,3 +1,7 @@
+# Python
+__pycache__/
+*.py[cod]
+
 # Python / uv wheel build outputs
 dist/
 build/
