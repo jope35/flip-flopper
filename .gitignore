@@ -1,3 +1,6 @@
+# CatBoost local training artifacts
+catboost_info/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -38,3 +41,24 @@ node_modules/
 # Task files
 tasks.json
 tasks/ 
+.cursor/mcp.json
+.cursor/hooks/state/continual-learning-index.json
+.cursor/hooks/state/continual-learning.json
+.cursor/rules/cursor_rules.mdc
+.cursor/rules/self_improve.mdc
+.cursor/rules/specify-rules.mdc
+.cursor/skills/speckit-agent-context-update/SKILL.md
+.cursor/skills/speckit-analyze/SKILL.md
+.cursor/skills/speckit-checklist/SKILL.md
+.cursor/skills/speckit-clarify/SKILL.md
+.cursor/skills/speckit-constitution/SKILL.md
+.cursor/skills/speckit-git-commit/SKILL.md
+.cursor/skills/speckit-git-feature/SKILL.md
+.cursor/skills/speckit-git-initialize/SKILL.md
+.cursor/skills/speckit-git-remote/SKILL.md
+.cursor/skills/speckit-git-validate/SKILL.md
+.cursor/skills/speckit-implement/SKILL.md
+.cursor/skills/speckit-plan/SKILL.md
+.cursor/skills/speckit-specify/SKILL.md
+.cursor/skills/speckit-tasks/SKILL.md
+.cursor/skills/speckit-taskstoissues/SKILL.md

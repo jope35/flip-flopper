@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 from typing import Any
 
@@ -22,9 +21,8 @@ def transform_features(pipeline: Pipeline, frame: pd.DataFrame) -> np.ndarray:
 
 def export_catboost_classifier_to_onnx(classifier: CatBoostClassifier) -> onnx.ModelProto:
     """Export a fitted CatBoostClassifier to ONNX via a temporary file path."""
-    fd, path = tempfile.mkstemp(suffix=".onnx")
-    os.close(fd)
-    try:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/model.onnx"
         classifier.save_model(
             path,
             format="onnx",
@@ -36,9 +34,6 @@ def export_catboost_classifier_to_onnx(classifier: CatBoostClassifier) -> onnx.M
             },
         )
         return onnx.load(path)
-    finally:
-        if os.path.exists(path):
-            os.unlink(path)
 
 
 def onnx_input_name(onnx_model: onnx.ModelProto) -> str:
@@ -67,7 +62,7 @@ def probabilities_to_dense_2d(probabilities_output: Any) -> np.ndarray:
         msg = f"Unexpected probability array shape: {array.shape}"
         raise ValueError(msg)
 
-    if isinstance(probabilities_output, (list, tuple)):
+    if isinstance(probabilities_output, list | tuple):
         rows: list[list[float]] = []
         for row_map in probabilities_output:
             if isinstance(row_map, dict):

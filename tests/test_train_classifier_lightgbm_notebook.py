@@ -17,5 +17,7 @@ def test_classifier_lightgbm_notebook_has_required_imports_and_settings() -> Non
 
     assert "from lightgbm import LGBMClassifier" in source
     assert "update_registered_converter(\n    LGBMClassifier" in source
-    assert '_l"' in source
+    assert 'MODEL_VARIANT = "l"' in source
+    assert "flip_flopper.classifier_training" in source
+    assert "flip_flopper.sklearn_onnx" in source
     assert 'MODEL_ALIAS = "Champion"' in source

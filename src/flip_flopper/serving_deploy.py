@@ -10,6 +10,7 @@ from typing import Any
 import mlflow
 import requests
 from mlflow.deployments import DatabricksDeploymentClient, get_deploy_client
+from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
 
 
@@ -275,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
             letter_c=ns.letter_c,
             letter_d=ns.letter_d,
         )
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, MlflowException, requests.HTTPError, requests.RequestException) as e:
         print(f"deploy_endpoint failed: {e}", file=sys.stderr)
         return 1
 
