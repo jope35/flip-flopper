@@ -1,0 +1,38 @@
+resources:
+  jobs:
+    train_classifier_catboost:
+      name: "train_classifier_catboost"
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.default.name}
+        - name: table_name
+          default: ${var.dummy_data_table_name}
+        - name: experiment_name
+          default: ${var.classifier_experiment_name}
+        - name: registered_model_suffix
+          default: ${var.classifier_registered_model_suffix}
+        - name: max_training_rows
+          default: "200000"
+        - name: cv_folds
+          default: "5"
+      environments:
+        - environment_key: classifier_train_env
+          spec:
+            environment_version: "5"
+            dependencies:
+              - ../dist/*.whl
+      tasks:
+        - task_key: train_classifier_catboost
+          environment_key: classifier_train_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_classifier_catboost.ipynb
+            base_parameters:
+              catalog: "{{job.parameters.catalog}}"
+              schema: "{{job.parameters.schema}}"
+              table_name: "{{job.parameters.table_name}}"
+              experiment_name: "{{job.parameters.experiment_name}}"
+              registered_model_suffix: "{{job.parameters.registered_model_suffix}}"
+              max_training_rows: "{{job.parameters.max_training_rows}}"
+              cv_folds: "{{job.parameters.cv_folds}}"

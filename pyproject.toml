@@ -14,14 +14,57 @@ dependencies = [
   "pandas>=2.2.0",
   "scikit-learn>=1.8.0",
   "skl2onnx>=1.20.0",
+  "catboost>=1.2.0",
+  "onnxmltools>=1.16.0",
+  "lightgbm>=4.5.0",
 ]
 
 [dependency-groups]
-dev = ["pre-commit>=4.0.0", "pytest>=8.3.5", "ruff>=0.11.0"]
+dev = [
+  "pre-commit>=4.0.0",
+  "pytest>=8.3.5",
+  "ruff>=0.11.0",
+  "databricks-notebook-linter>=0.2.0",
+  "databricks-labs-pylint>=0.5.0",
+  "nbconvert>=7.0.0",
+  "notebook>=7.0.0",
+]
 
 [tool.ruff]
-extend-exclude = [".claude", ".cursor", ".databricks"]
+extend-exclude = [".claude", ".cursor", ".databricks", "scripts/validate_notebook.py"]
 builtins = ["dbutils", "spark"]
+line-length = 120
+select = ["E", "F", "W", "I", "B", "C4", "UP", "SIM"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pylint]
+load-plugins = ["databricks.labs.pylint.all"]
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = ["all"]
+enable = [
+  "missing-data-security-mode",
+  "unsupported-runtime",
+  "dbutils-fs-cp",
+  "dbutils-fs-head",
+  "dbutils-fs-ls",
+  "dbutils-fs-mount",
+  "dbutils-credentials",
+  "dbutils-notebook-run",
+  "pat-token-leaked",
+  "internal-api",
+  "legacy-cli",
+  "incompatible-with-uc",
+  "notebooks-too-many-cells",
+  "notebooks-percent-run",
+  "spark-outside-function",
+  "use-display-instead-of-show",
+  "no-spark-argument-in-function",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

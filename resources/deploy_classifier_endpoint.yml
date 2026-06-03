@@ -15,10 +15,18 @@ resources:
           default: ${var.classifier_alias_champion}
         - name: alias_b
           default: ${var.classifier_alias_challenger}
+        - name: alias_c
+          default: ${var.classifier_alias_catboost}
+        - name: alias_d
+          default: ${var.classifier_alias_lightgbm}
         - name: traffic_a
           default: ${var.classifier_traffic_pct_champion}
         - name: traffic_b
           default: ${var.classifier_traffic_pct_challenger}
+        - name: traffic_c
+          default: ${var.classifier_traffic_pct_catboost}
+        - name: traffic_d
+          default: ${var.classifier_traffic_pct_lightgbm}
         - name: workload_size
           default: ${var.classifier_serving_workload_size}
         - name: scale_to_zero
@@ -47,10 +55,18 @@ resources:
               - "{{job.parameters.alias_a}}"
               - "--alias-b"
               - "{{job.parameters.alias_b}}"
+              - "--alias-c"
+              - "{{job.parameters.alias_c}}"
+              - "--alias-d"
+              - "{{job.parameters.alias_d}}"
               - "--traffic-a"
               - "{{job.parameters.traffic_a}}"
               - "--traffic-b"
               - "{{job.parameters.traffic_b}}"
+              - "--traffic-c"
+              - "{{job.parameters.traffic_c}}"
+              - "--traffic-d"
+              - "{{job.parameters.traffic_d}}"
               - "--workload-size"
               - "{{job.parameters.workload_size}}"
               - "--scale-to-zero"

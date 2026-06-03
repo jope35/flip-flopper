@@ -4,6 +4,10 @@ bundle:
 include:
   - resources/*.yml
 
+scripts:
+  update_endpoint_split:
+    content: uv run python scripts/bundle-run/update_endpoint_split.py
+
 artifacts:
   flip_flopper:
     type: whl
@@ -28,10 +32,18 @@ variables:
     default: Champion
   classifier_alias_challenger:
     default: Challenger
+  classifier_alias_catboost:
+    default: Champion
+  classifier_alias_lightgbm:
+    default: Champion
   classifier_traffic_pct_champion:
-    default: "50"
+    default: "25"
   classifier_traffic_pct_challenger:
-    default: "50"
+    default: "25"
+  classifier_traffic_pct_catboost:
+    default: "25"
+  classifier_traffic_pct_lightgbm:
+    default: "25"
   classifier_serving_workload_size:
     default: Small
   classifier_serving_scale_to_zero:
@@ -42,14 +54,13 @@ resources:
     default:
       name: flip_flopper
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: false
 
 
 targets:
   dev:
     default: true
     workspace:
-      host: https://dbc-b9d925fd-a82e.cloud.databricks.com
-  prod:
-    mode: production
-    workspace:
-      host: https://dbc-b9d925fd-a82e.cloud.databricks.com
+      host: https://dbc-0f232e4d-3ed4.cloud.databricks.com
+ 

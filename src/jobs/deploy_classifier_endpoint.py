@@ -1,8 +1,10 @@
-"""Databricks job entry: deploy two UC ONNX models to one serving endpoint (A/B traffic)."""
+"""Databricks job entry: deploy four UC ONNX models to one serving endpoint."""
 
 from __future__ import annotations
 
 from flip_flopper.serving_deploy import main
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    code = main()
+    if code:
+        raise SystemExit(code)

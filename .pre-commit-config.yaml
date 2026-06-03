@@ -7,3 +7,29 @@ repos:
         args: [--force-exclude]
         language: system
         types_or: [python, pyi]
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check
+        args: [--force-exclude, --fix]
+        language: system
+        types_or: [python, pyi]
+
+  - repo: https://github.com/Yipit/databricks-notebook-linter
+    rev: v0.2.1
+    hooks:
+      - id: fix-databricks-magic
+        name: Fix Databricks magic commands
+        entry: fix-databricks-magic
+        args: [--fix]
+        language: system
+        types_or: [python]
+
+  - repo: local
+    hooks:
+      - id: validate-notebook
+        name: Validate Databricks notebook
+        entry: python scripts/validate_notebook.py
+        language: system
+        types_or: [python]
+        pass_filenames: false
+        always_run: true
