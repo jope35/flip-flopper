@@ -13,6 +13,15 @@ variables:
     description: The catalog to use
   schema:
     description: The schema to use
+  table_name:
+    description: Table name for generated dummy data
+    default: generated_data
+
+resources:
+  schemas:
+    default:
+      name: ${var.schema}
+      catalog_name: ${var.catalog}
 
 targets:
   dev:
