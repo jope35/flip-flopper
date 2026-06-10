@@ -22,6 +22,14 @@
 - Jobs parameterize catalog and schema via bundle variables and schema resources (for example `${var.catalog}` and `${resources.schemas.default.name}`); notebook widget defaults may use project naming like `flip_flopper` where configured.
 - The `deploy_classifier_endpoint` bundle job creates/updates the serving endpoint by resolving UC model aliases to concrete versions (`Champion` for model `_a`, `Challenger` for model `_b` by default); ensure those aliases exist before running it.
 
+## Cursor Cloud specific instructions
+
+- **Python toolchain:** Use [uv](https://docs.astral.sh/uv/) with the lockfile (`uv sync --group dev`). Project code expects Python ≥ 3.11; Cloud VMs here ship 3.12. If `uv` is missing, install once: `curl -LsSf https://astral.sh/uv/install.sh | sh` and ensure `$HOME/.local/bin` is on `PATH`.
+- **Local dev loop (no Databricks):** From repo root: `uv run pytest`, `uv run ruff check .`, `uv run ruff format --check .` (or `uv run pre-commit run --all-files` for format-only). Build the bundle wheel with `uv build --wheel` (output under `dist/`).
+- **Databricks CLI for bundles:** Asset bundle commands need **Databricks CLI v1+** (`databricks bundle …`), not the deprecated `databricks-cli` 0.18 package. Install to a user-writable path with `DATABRICKS_RUNTIME_VERSION=1 curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/v1.1.0/install.sh | sh` (installs to `~/bin/databricks`). Put `$HOME/bin` ahead of `$HOME/.local/bin` on `PATH` so the new CLI wins over any legacy `databricks` on the VM.
+- **Workspace auth:** `databricks bundle validate`, `deploy`, and `run` require configured workspace credentials (OAuth/PAT per [Databricks auth](https://docs.databricks.com/en/dev-tools/auth.html)). Without auth, local pytest and wheel build still work; bundle validation against the configured host will fail.
+- **No long-running local app:** Flip-Flopper runs on Databricks Jobs (serverless) and Model Serving. E2E on a workspace is: build wheel → `databricks bundle validate && databricks bundle deploy && databricks bundle run create_dummy_data` (then train jobs, then `deploy_classifier_endpoint`). See learned preferences above for job order and parameters.
+- **Hello-world offline:** Import `flip_flopper.serving_deploy` and call `build_serving_config` / `registered_model_fqn` (covered by `tests/test_serving_deploy.py`).
 
 
 ## user-specific guidelines
