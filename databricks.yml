@@ -12,15 +12,25 @@ variables:
   catalog:
     description: The catalog to use
   schema:
-    description: The schema to use
+    description: UC schema for data tables
+    default: data
+  model_schema:
+    description: UC schema for registered models
+    default: model
   table_name:
     description: Table name for generated dummy data
     default: generated_data
+  model_name:
+    description: Registered model name for logistic regression ONNX artifact
+    default: logistic_regression_onnx
 
 resources:
   schemas:
-    default:
+    data:
       name: ${var.schema}
+      catalog_name: ${var.catalog}
+    model:
+      name: ${var.model_schema}
       catalog_name: ${var.catalog}
 
 targets:
@@ -35,7 +45,8 @@ targets:
       host: https://dbc-b9d925fd-a82e.cloud.databricks.com
     variables:
       catalog: workspace
-      schema: dev
+      schema: data
+      model_schema: model
   prod:
     mode: production
     workspace:
@@ -44,7 +55,8 @@ targets:
       root_path: /Workspace/Users/sweet.goose5360@fastmail.com/.bundle/${bundle.name}/${bundle.target}
     variables:
       catalog: workspace
-      schema: prod
+      schema: data
+      model_schema: model
     permissions:
       - user_name: sweet.goose5360@fastmail.com
         level: CAN_MANAGE
