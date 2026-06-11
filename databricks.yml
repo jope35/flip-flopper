@@ -29,6 +29,9 @@ variables:
   pytorch_mlp_model_name:
     description: Registered model name for PyTorch MLP ONNX artifact
     default: pytorch_mlp_onnx
+  serving_endpoint_name:
+    description: Model Serving endpoint name for the 3-model traffic split
+    default: flip_flopper_serving
 
 resources:
   schemas:
