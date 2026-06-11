@@ -23,6 +23,7 @@ resources:
               - pandas
               - torch
               - onnx
+              - onnxscript
               - onnxruntime
       tasks:
         - task_key: train_pytorch_mlp
