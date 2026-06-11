@@ -12,7 +12,7 @@ resources:
       environments:
         - environment_key: dummy_data_env
           spec:
-            client: "4"
+            client: "5"
             dependencies:
               - pandas
               - scikit-learn
