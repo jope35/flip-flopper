@@ -1,13 +1,16 @@
 # Train LightGBM Job — Design
 
 **Date:** 2026-06-11  
-**Status:** Approved
+**Status:** Approved  
+**Revision (2026-06-11):** ONNX export changed from LightGBM native export to
+`onnxmltools.convert_lightgbm`. LightGBM's Python `Booster.save_model()` has no
+`format="onnx"` parameter ([docs](https://lightgbm.readthedocs.io/en/stable/pythonapi/lightgbm.Booster.html#lightgbm.Booster.save_model)).
 
 ## Summary
 
 Add a Databricks job that reads a binary classification table from Unity Catalog, trains a
-basic `LGBMClassifier` model on all rows, exports it to ONNX via LightGBM's built-in
-exporter, and registers it in the Unity Catalog Model Registry. Input and output UC
+basic `LGBMClassifier` model on all rows, converts it to ONNX via `onnxmltools`, and
+registers it in the Unity Catalog Model Registry. Input and output UC
 locations are controlled by six job parameters. The UC `data` and `model` schemas are
 bundle-managed. The notebook uses a multi-cell layout with section headers for readability
 in Databricks and for blog excerpts.
@@ -25,7 +28,7 @@ side-by-side blog comparison. Prerequisite: run `create_dummy_data` first to pop
 | Input table shape | Fixed to dummy-data schema: `feature_000`…`feature_032` + `label` |
 | Input UC location | Three job parameters: `catalog`, `schema`, `table_name` |
 | Model registry location | Three job parameters: `model_catalog`, `model_schema`, `model_name` |
-| ONNX export | Native `booster.save_model(path, format="onnx")` → `onnx.load` |
+| ONNX export | `onnxmltools.convert_lightgbm(model, initial_types=..., zipmap=False)` |
 | Model format in registry | ONNX via `mlflow.onnx.log_model` |
 | Task type | Notebook (`src/jobs/train_lightgbm.ipynb`) |
 | Compute | Serverless environment with pip deps, client `"5"` |
@@ -50,7 +53,7 @@ bundle run train_lightgbm             (parallel to train_logistic_regression)
   └── notebook (serverless)
         ├── read table → pandas
         ├── LGBMClassifier.fit (all rows)
-        ├── booster.save_model(format="onnx") → onnx.load
+        ├── onnxmltools.convert_lightgbm (zipmap=False)
         └── mlflow.onnx.log_model → register {model_catalog}.{model_schema}.{model_name}
 ```
 
@@ -58,7 +61,7 @@ bundle run train_lightgbm             (parallel to train_logistic_regression)
 
 | Approach | Why not chosen |
 |---|---|
-| `onnxmltools.convert_lightgbm` | Extra dependency and version quirks; native LightGBM export is simpler for a blog demo |
+| LightGBM native `save_model(..., format="onnx")` | API does not exist in the Python package; would fail at runtime |
 | Single parameterized notebook (`algorithm` widget) | Harder to excerpt for blog; unnecessary branching |
 | Hardcode `lightgbm_onnx` in job YAML only (no bundle variable) | Inconsistent with how logistic regression uses `${var.model_name}` |
 | Shared Python module for both training jobs | Over-engineered for a blog demo |
@@ -108,6 +111,7 @@ resources:
             dependencies:
               - pandas
               - lightgbm
+              - onnxmltools
               - onnx
               - onnxruntime
       tasks:
@@ -146,9 +150,12 @@ Four code cells with markdown section headers above each:
 
 1. Instantiate `lgb.LGBMClassifier(random_state=42)` with default hyperparameters.
 2. Call `model.fit(X, y)` on all rows.
-3. Write ONNX to a temp file via `model.booster_.save_model(path, format="onnx")`.
-4. Load with `onnx.load(path)` and clean up the temp file.
+3. Build ONNX input type: `FloatTensorType([None, X.shape[1]])`.
+4. Convert with `onnxmltools.convert_lightgbm(model, initial_types=initial_type, zipmap=False)`.
 5. Print confirmation (no accuracy metrics or evaluation).
+
+`zipmap=False` emits probability outputs as tensors (not ZipMap ops), which works better
+with `infer_signature` and ONNX Runtime.
 
 #### Cell 4 — Register in UC Model Registry
 
@@ -196,7 +203,14 @@ Manual verification:
 2. `databricks bundle run create_dummy_data`
 3. `databricks bundle run train_lightgbm`
 4. Confirm model appears in Unity Catalog at `{catalog}.model.lightgbm_onnx`
-   with version 1 (or incremented on re-run).
+   with version 1 (or incremented on re-run):
+
+   ```bash
+   databricks registered-models get workspace.model.lightgbm_onnx
+   databricks model-versions list workspace.model.lightgbm_onnx
+   ```
+
+   Adjust catalog/schema for dev-mode schema prefixing if applicable.
 
 Optional follow-up: notebook smoke test via existing pytest + Databricks Connect pattern
 in `tests/conftest.py`.
