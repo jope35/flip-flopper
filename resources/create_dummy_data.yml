@@ -1,20 +1,21 @@
 resources:
   jobs:
     create_dummy_data:
-      name: "create_dummy_data"
+      name: create_dummy_data
       parameters:
         - name: catalog
           default: ${var.catalog}
         - name: schema
-          default: ${resources.schemas.default.name}
+          default: ${resources.schemas.data.name}
         - name: table_name
-          default: ${var.dummy_data_table_name}
+          default: ${var.table_name}
       environments:
         - environment_key: dummy_data_env
           spec:
-            environment_version: "5"
+            client: "5"
             dependencies:
-              - ../dist/*.whl
+              - pandas
+              - scikit-learn
       tasks:
         - task_key: create_dummy_data
           environment_key: dummy_data_env

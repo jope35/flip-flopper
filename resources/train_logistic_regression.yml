@@ -1,0 +1,39 @@
+resources:
+  jobs:
+    train_logistic_regression:
+      name: train_logistic_regression
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.data.name}
+        - name: table_name
+          default: ${var.table_name}
+        - name: model_catalog
+          default: ${var.catalog}
+        - name: model_schema
+          default: ${resources.schemas.model.name}
+        - name: model_name
+          default: ${var.model_name}
+      environments:
+        - environment_key: train_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - scikit-learn
+              - skl2onnx
+              - onnx
+              - onnxruntime
+      tasks:
+        - task_key: train_logistic_regression
+          environment_key: train_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_logistic_regression.ipynb
+            base_parameters:
+              catalog: "{{job.parameters.catalog}}"
+              schema: "{{job.parameters.schema}}"
+              table_name: "{{job.parameters.table_name}}"
+              model_catalog: "{{job.parameters.model_catalog}}"
+              model_schema: "{{job.parameters.model_schema}}"
+              model_name: "{{job.parameters.model_name}}"

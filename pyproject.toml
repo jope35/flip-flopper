@@ -1,31 +1,34 @@
-[build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
-name = "flip-flopper"
-version = "0.1.0"
-description = "Databricks serving A/B test controller"
-requires-python = ">=3.11"
+name = "flip_flopper"
+version = "0.0.1"
+authors = [{ name = "sweet.goose5360@fastmail.com" }]
+requires-python = ">=3.10,<3.13"
 dependencies = [
-  "mlflow>=3.11.1",
-  "onnx>=1.21.0",
-  "onnxruntime>=1.24.4",
-  "pandas>=2.2.0",
-  "scikit-learn>=1.8.0",
-  "skl2onnx>=1.20.0",
+    # Any dependencies for jobs and pipelines in this project can be added here
+    # See also https://docs.databricks.com/dev-tools/bundles/library-dependencies
+    #
+    # LIMITATION: for pipelines, dependencies are cached during development;
+    # add dependencies to the 'environment' section of your pipeline.yml file instead
 ]
 
 [dependency-groups]
-dev = ["pre-commit>=4.0.0", "pytest>=8.3.5", "ruff>=0.11.0"]
+dev = [
+    "pytest",
+    "ruff",
+    "databricks-dlt",
+    "databricks-connect>=15.4,<15.5",
+    "ipykernel",
+]
+
+[project.scripts]
+main = "flip_flopper.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.ruff]
-extend-exclude = [".claude", ".cursor", ".databricks"]
-builtins = ["dbutils", "spark"]
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
+line-length = 120
