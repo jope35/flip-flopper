@@ -18,12 +18,13 @@ resources:
       environments:
         - environment_key: train_env
           spec:
-            client: "4"
+            client: "5"
             dependencies:
               - pandas
               - scikit-learn
               - skl2onnx
               - onnx
+              - onnxruntime
       tasks:
         - task_key: train_logistic_regression
           environment_key: train_env
