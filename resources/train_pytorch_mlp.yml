@@ -1,0 +1,38 @@
+resources:
+  jobs:
+    train_pytorch_mlp:
+      name: train_pytorch_mlp
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+        - name: schema
+          default: ${resources.schemas.data.name}
+        - name: table_name
+          default: ${var.table_name}
+        - name: model_catalog
+          default: ${var.catalog}
+        - name: model_schema
+          default: ${resources.schemas.model.name}
+        - name: model_name
+          default: ${var.pytorch_mlp_model_name}
+      environments:
+        - environment_key: train_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - torch
+              - onnx
+              - onnxruntime
+      tasks:
+        - task_key: train_pytorch_mlp
+          environment_key: train_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_pytorch_mlp.ipynb
+            base_parameters:
+              catalog: "{{job.parameters.catalog}}"
+              schema: "{{job.parameters.schema}}"
+              table_name: "{{job.parameters.table_name}}"
+              model_catalog: "{{job.parameters.model_catalog}}"
+              model_schema: "{{job.parameters.model_schema}}"
+              model_name: "{{job.parameters.model_name}}"

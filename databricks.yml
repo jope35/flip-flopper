@@ -26,6 +26,9 @@ variables:
   lightgbm_model_name:
     description: Registered model name for LightGBM ONNX artifact
     default: lightgbm_onnx
+  pytorch_mlp_model_name:
+    description: Registered model name for PyTorch MLP ONNX artifact
+    default: pytorch_mlp_onnx
 
 resources:
   schemas:
