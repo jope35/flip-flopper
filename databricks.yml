@@ -23,6 +23,9 @@ variables:
   model_name:
     description: Registered model name for logistic regression ONNX artifact
     default: logistic_regression_onnx
+  lightgbm_model_name:
+    description: Registered model name for LightGBM ONNX artifact
+    default: lightgbm_onnx
 
 resources:
   schemas:
