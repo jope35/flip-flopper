@@ -21,16 +21,19 @@ variables:
     description: Table name for generated dummy data
     default: generated_data
   model_name:
-    description: Registered model name for logistic regression ONNX artifact
+    description: Registered ONNX-backed pyfunc model for logistic regression (outputs target, proba, model_name)
     default: logistic_regression_onnx
   lightgbm_model_name:
-    description: Registered model name for LightGBM ONNX artifact
+    description: Registered ONNX-backed pyfunc model for LightGBM (outputs target, proba, model_name)
     default: lightgbm_onnx
+  xgboost_model_name:
+    description: Registered ONNX-backed pyfunc model for XGBoost (outputs target, proba, model_name)
+    default: xgboost_onnx
   pytorch_mlp_model_name:
-    description: Registered model name for PyTorch MLP ONNX artifact
+    description: Registered ONNX-backed pyfunc model for PyTorch MLP (outputs target, proba, model_name)
     default: pytorch_mlp_onnx
   serving_endpoint_name:
-    description: Model Serving endpoint name for the 3-model traffic split
+    description: Model Serving endpoint name for the 4-model traffic split
     default: flip_flopper_serving
 
 resources:

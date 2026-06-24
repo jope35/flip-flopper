@@ -1,0 +1,42 @@
+resources:
+  jobs:
+    run_pipeline:
+      name: run_pipeline
+      max_concurrent_runs: 1
+      tasks:
+        - task_key: create_dummy_data
+          run_job_task:
+            job_id: ${resources.jobs.create_dummy_data.id}
+
+        - task_key: train_logistic_regression
+          depends_on:
+            - task_key: create_dummy_data
+          run_job_task:
+            job_id: ${resources.jobs.train_logistic_regression.id}
+
+        - task_key: train_lightgbm
+          depends_on:
+            - task_key: create_dummy_data
+          run_job_task:
+            job_id: ${resources.jobs.train_lightgbm.id}
+
+        - task_key: train_xgboost
+          depends_on:
+            - task_key: create_dummy_data
+          run_job_task:
+            job_id: ${resources.jobs.train_xgboost.id}
+
+        - task_key: train_pytorch_mlp
+          depends_on:
+            - task_key: create_dummy_data
+          run_job_task:
+            job_id: ${resources.jobs.train_pytorch_mlp.id}
+
+        - task_key: deploy_serving_endpoint
+          depends_on:
+            - task_key: train_logistic_regression
+            - task_key: train_lightgbm
+            - task_key: train_xgboost
+            - task_key: train_pytorch_mlp
+          run_job_task:
+            job_id: ${resources.jobs.deploy_serving_endpoint.id}

@@ -11,8 +11,8 @@ resources:
           default: ${var.model_name}
         - name: lightgbm_model_name
           default: ${var.lightgbm_model_name}
-        - name: pytorch_model_name
-          default: ${var.pytorch_mlp_model_name}
+        - name: xgboost_model_name
+          default: ${var.xgboost_model_name}
         - name: endpoint_name
           default: ${var.serving_endpoint_name}
       environments:
@@ -32,5 +32,5 @@ resources:
               model_schema: "{{job.parameters.model_schema}}"
               logistic_model_name: "{{job.parameters.logistic_model_name}}"
               lightgbm_model_name: "{{job.parameters.lightgbm_model_name}}"
-              pytorch_model_name: "{{job.parameters.pytorch_model_name}}"
+              xgboost_model_name: "{{job.parameters.xgboost_model_name}}"
               endpoint_name: "{{job.parameters.endpoint_name}}"
