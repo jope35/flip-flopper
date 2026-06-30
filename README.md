@@ -1,4 +1,4 @@
-<br />
+<br/>
 <h1 style="font-size: 6em;"><p align="center"> 🩴🩴🩴 Flip-Flopper 🩴🩴🩴 </p></h1>
 <h2><p align="center">Serve multiple classical ML models from one Databricks endpoint</p></h2>
 
@@ -27,9 +27,7 @@
     <img alt="GitHub last commit (branch)" src="https://img.shields.io/github/last-commit/revodatanl/polly-pony/main" />
   </a>
 </p>
-<br />
-
----
+<br/>
 
 - [What is Flip-Flopper?](#what-is-flip-flopper)
 - [Highlights](#highlights)
@@ -101,16 +99,16 @@ Useful references:
 
 The important bundle settings live in `databricks.yml`.
 
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `catalog` | `workspace` in both targets | Unity Catalog catalog |
-| `schema` | `data` | schema for generated data |
-| `model_schema` | `model` | schema for registered models |
-| `table_name` | `generated_data` | generated feature table |
-| `model_name` | `logistic_regression_onnx` | registered logistic regression model |
-| `lightgbm_model_name` | `lightgbm_onnx` | registered LightGBM model |
-| `xgboost_model_name` | `xgboost_onnx` | registered XGBoost model |
-| `serving_endpoint_name` | `flip_flopper_serving` | Model Serving endpoint name |
+| Variable                | Default                     | Meaning                              |
+| ----------------------- | --------------------------- | ------------------------------------ |
+| `catalog`               | `workspace` in both targets | Unity Catalog catalog                |
+| `schema`                | `data`                      | schema for generated data            |
+| `model_schema`          | `model`                     | schema for registered models         |
+| `table_name`            | `generated_data`            | generated feature table              |
+| `model_name`            | `logistic_regression_onnx`  | registered logistic regression model |
+| `lightgbm_model_name`   | `lightgbm_onnx`             | registered LightGBM model            |
+| `xgboost_model_name`    | `xgboost_onnx`              | registered XGBoost model             |
+| `serving_endpoint_name` | `flip_flopper_serving`      | Model Serving endpoint name          |
 
 The default `dev` target uses Databricks bundle development mode. The `prod` target uses production mode and an explicit workspace root path.
 
@@ -168,11 +166,11 @@ The three training jobs all read the same generated feature table, convert their
 
 The deployment job resolves the latest UC model versions at runtime and configures one endpoint with three served entities:
 
-| Served entity | UC model variable | Traffic |
-| --- | --- | --- |
-| `logistic_regression` | `model_name` | 34% |
-| `lightgbm` | `lightgbm_model_name` | 33% |
-| `xgboost` | `xgboost_model_name` | 33% |
+| Served entity         | UC model variable     | Traffic |
+| --------------------- | --------------------- | ------- |
+| `logistic_regression` | `model_name`          | 34%     |
+| `lightgbm`            | `lightgbm_model_name` | 33%     |
+| `xgboost`             | `xgboost_model_name`  | 33%     |
 
 Because Free Edition workspaces limit Model Serving capacity, the deployment job may add served entities incrementally (one model at a time) when creating all three at once exceeds quota.
 

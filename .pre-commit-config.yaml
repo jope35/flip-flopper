@@ -1,0 +1,41 @@
+# https://pre-commit.com
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      # - id: no-commit-to-branch
+      #   args: ["--branch", "main", "--branch", "master"]
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.9.1
+    hooks:
+      - id: nbstripout
+        name: nbstripout (clear Jupyter output)
+        types: [jupyter]
+  - repo: local
+    hooks:
+      - id: ruff-organize-imports
+        name: ruff (organize imports)
+        entry: uv run --group dev ruff check --select I --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff (format)
+        entry: uv run --group dev ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-lint
+        name: ruff (lint)
+        entry: uv run --group dev ruff check
+        language: system
+        types_or: [python, pyi]
+      - id: uv-audit
+        name: uv audit
+        entry: bash -ec 'uv --preview-features audit audit --locked && uv --preview-features audit audit --locked --project bundle_a && uv --preview-features audit audit --locked --project bundle_b'
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|uv\.lock)$

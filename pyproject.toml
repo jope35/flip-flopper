@@ -9,6 +9,7 @@ dependencies = [
     #
     # LIMITATION: for pipelines, dependencies are cached during development;
     # add dependencies to the 'environment' section of your pipeline.yml file instead
+    "pre-commit>=4.6.0",
 ]
 
 [dependency-groups]
