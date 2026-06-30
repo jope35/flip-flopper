@@ -26,17 +26,10 @@ resources:
           run_job_task:
             job_id: ${resources.jobs.train_xgboost.id}
 
-        - task_key: train_pytorch_mlp
-          depends_on:
-            - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_pytorch_mlp.id}
-
         - task_key: deploy_serving_endpoint
           depends_on:
             - task_key: train_logistic_regression
             - task_key: train_lightgbm
             - task_key: train_xgboost
-            - task_key: train_pytorch_mlp
           run_job_task:
             job_id: ${resources.jobs.deploy_serving_endpoint.id}
