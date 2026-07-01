@@ -1,7 +1,7 @@
 # Train LightGBM Job — Design
 
-**Date:** 2026-06-11  
-**Status:** Approved  
+**Date:** 2026-06-11
+**Status:** Approved
 **Revision (2026-06-11):** ONNX export changed from LightGBM native export to
 `onnxmltools.convert_lightgbm`. LightGBM's Python `Booster.save_model()` has no
 `format="onnx"` parameter ([docs](https://lightgbm.readthedocs.io/en/stable/pythonapi/lightgbm.Booster.html#lightgbm.Booster.save_model)).

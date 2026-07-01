@@ -1,12 +1,12 @@
 # Deploy Serving Endpoint Job — Design
 
-**Date:** 2026-06-11  
+**Date:** 2026-06-11
 **Status:** Approved
 
 ## Summary
 
 Add a Databricks job that deploys all three registered ONNX models from Unity Catalog
-(`logistic_regression_onnx`, `lightgbm_onnx`, `pytorch_mlp_onnx`) to a single CPU Model
+(`logistic_regression_onnx`, `lightgbm_onnx`, `xgboost_onnx`) to a single CPU Model
 Serving endpoint with a 33/33/34 traffic split and inference tables enabled. The job
 resolves the latest version of each model at runtime, creates the endpoint on first run,
 and updates it on subsequent runs. The job blocks until the endpoint reaches `READY` state.
@@ -22,7 +22,7 @@ and for blog excerpts.
 
 | Requirement | Decision |
 |---|---|
-| Models served | `logistic_regression_onnx`, `lightgbm_onnx`, `pytorch_mlp_onnx` |
+| Models served | `logistic_regression_onnx`, `lightgbm_onnx`, `xgboost_onnx` |
 | Model versions | Latest registered version of each, resolved at job runtime |
 | Endpoint compute | CPU, workload size `Small`, scale-to-zero enabled |
 | Traffic split | 33% / 33% / 34% (must sum to 100) |
@@ -46,7 +46,7 @@ bundle deploy
 
 bundle run train_logistic_regression   (prerequisite)
 bundle run train_lightgbm              (prerequisite)
-bundle run train_pytorch_mlp           (prerequisite)
+bundle run train_xgboost           (prerequisite)
   └── register ONNX models in {catalog}.model
 
 bundle run deploy_serving_endpoint
@@ -91,7 +91,7 @@ serving_endpoint_name:
 ```
 
 Reuse existing model name variables: `model_name`, `lightgbm_model_name`,
-`pytorch_mlp_model_name`. No new UC schema resources — inference tables land in the
+`xgboost_model_name`. No new UC schema resources — inference tables land in the
 existing bundle-managed `model` schema.
 
 ### `resources/deploy_serving_endpoint.yml`
@@ -110,8 +110,8 @@ resources:
           default: ${var.model_name}
         - name: lightgbm_model_name
           default: ${var.lightgbm_model_name}
-        - name: pytorch_model_name
-          default: ${var.pytorch_mlp_model_name}
+        - name: xgboost_model_name
+          default: ${var.xgboost_model_name}
         - name: endpoint_name
           default: ${var.serving_endpoint_name}
         - name: inference_catalog
@@ -135,7 +135,7 @@ resources:
               model_schema: "{{job.parameters.model_schema}}"
               logistic_model_name: "{{job.parameters.logistic_model_name}}"
               lightgbm_model_name: "{{job.parameters.lightgbm_model_name}}"
-              pytorch_model_name: "{{job.parameters.pytorch_model_name}}"
+              xgboost_model_name: "{{job.parameters.xgboost_model_name}}"
               endpoint_name: "{{job.parameters.endpoint_name}}"
               inference_catalog: "{{job.parameters.inference_catalog}}"
               inference_schema: "{{job.parameters.inference_schema}}"
@@ -152,7 +152,7 @@ Five code cells with markdown section headers above each:
 3. Build full UC model paths:
    - `{model_catalog}.{model_schema}.{logistic_model_name}`
    - `{model_catalog}.{model_schema}.{lightgbm_model_name}`
-   - `{model_catalog}.{model_schema}.{pytorch_model_name}`
+   - `{model_catalog}.{model_schema}.{xgboost_model_name}`
 
 #### Cell 2 — Resolve latest model versions
 
@@ -172,7 +172,7 @@ Construct an `EndpointCoreConfigInput` with:
 |---|---|---|---|---|
 | `logistic_regression` | `{catalog}.{schema}.logistic_regression_onnx` | `CPU` | `Small` | `true` |
 | `lightgbm` | `{catalog}.{schema}.lightgbm_onnx` | `CPU` | `Small` | `true` |
-| `pytorch_mlp` | `{catalog}.{schema}.pytorch_mlp_onnx` | `CPU` | `Small` | `true` |
+| `xgboost` | `{catalog}.{schema}.xgboost_onnx` | `CPU` | `Small` | `true` |
 
 Each entity uses the latest version resolved in Cell 2.
 
@@ -182,7 +182,7 @@ Each entity uses the latest version resolved in Cell 2.
 |---|---|
 | `logistic_regression` | 33 |
 | `lightgbm` | 33 |
-| `pytorch_mlp` | 34 |
+| `xgboost` | 34 |
 
 **Auto capture config (inference tables):**
 

@@ -10,7 +10,7 @@
 
 **Design reference:** [2026-06-11-deploy-serving-endpoint-design.md](../specs/2026-06-11-deploy-serving-endpoint-design.md)
 
-**Prerequisite:** All three training jobs must have run at least once so `{catalog}.{model_schema}` contains registered versions of `logistic_regression_onnx`, `lightgbm_onnx`, and `pytorch_mlp_onnx`. The job runner must have `EXECUTE` on each registered model (training-job owners typically already do).
+**Prerequisite:** All three training jobs must have run at least once so `{catalog}.{model_schema}` contains registered versions of `logistic_regression_onnx`, `lightgbm_onnx`, and `xgboost_onnx`. The job runner must have `EXECUTE` on each registered model (training-job owners typically already do).
 
 **Simplicity note:** This is a blog-post demo, not production serving. Keep the notebook linear and readable — no shared Python modules, no retry wrappers, no dynamic traffic config. Straight SDK calls with clear `print` statements for blog excerpts.
 
@@ -41,7 +41,7 @@
 
 - [ ] **Step 1: Add `serving_endpoint_name` variable**
 
-Add under the existing `variables:` block, after `pytorch_mlp_model_name`:
+Add under the existing `variables:` block, after `xgboost_model_name`:
 
 ```yaml
   serving_endpoint_name:
@@ -100,8 +100,8 @@ resources:
           default: ${var.model_name}
         - name: lightgbm_model_name
           default: ${var.lightgbm_model_name}
-        - name: pytorch_model_name
-          default: ${var.pytorch_mlp_model_name}
+        - name: xgboost_model_name
+          default: ${var.xgboost_model_name}
         - name: endpoint_name
           default: ${var.serving_endpoint_name}
         - name: inference_catalog
@@ -125,7 +125,7 @@ resources:
               model_schema: "{{job.parameters.model_schema}}"
               logistic_model_name: "{{job.parameters.logistic_model_name}}"
               lightgbm_model_name: "{{job.parameters.lightgbm_model_name}}"
-              pytorch_model_name: "{{job.parameters.pytorch_model_name}}"
+              xgboost_model_name: "{{job.parameters.xgboost_model_name}}"
               endpoint_name: "{{job.parameters.endpoint_name}}"
               inference_catalog: "{{job.parameters.inference_catalog}}"
               inference_schema: "{{job.parameters.inference_schema}}"
@@ -166,7 +166,7 @@ dbutils.widgets.text("model_catalog", "")
 dbutils.widgets.text("model_schema", "")
 dbutils.widgets.text("logistic_model_name", "")
 dbutils.widgets.text("lightgbm_model_name", "")
-dbutils.widgets.text("pytorch_model_name", "")
+dbutils.widgets.text("xgboost_model_name", "")
 dbutils.widgets.text("endpoint_name", "")
 dbutils.widgets.text("inference_catalog", "")
 dbutils.widgets.text("inference_schema", "")
@@ -175,7 +175,7 @@ model_catalog = dbutils.widgets.get("model_catalog").strip()
 model_schema = dbutils.widgets.get("model_schema").strip()
 logistic_model_name = dbutils.widgets.get("logistic_model_name").strip()
 lightgbm_model_name = dbutils.widgets.get("lightgbm_model_name").strip()
-pytorch_model_name = dbutils.widgets.get("pytorch_model_name").strip()
+xgboost_model_name = dbutils.widgets.get("xgboost_model_name").strip()
 endpoint_name = dbutils.widgets.get("endpoint_name").strip()
 inference_catalog = dbutils.widgets.get("inference_catalog").strip()
 inference_schema = dbutils.widgets.get("inference_schema").strip()
@@ -185,7 +185,7 @@ params = {
     "model_schema": model_schema,
     "logistic_model_name": logistic_model_name,
     "lightgbm_model_name": lightgbm_model_name,
-    "pytorch_model_name": pytorch_model_name,
+    "xgboost_model_name": xgboost_model_name,
     "endpoint_name": endpoint_name,
     "inference_catalog": inference_catalog,
     "inference_schema": inference_schema,
@@ -196,12 +196,12 @@ if not all(params.values()):
 
 logistic_path = f"{model_catalog}.{model_schema}.{logistic_model_name}"
 lightgbm_path = f"{model_catalog}.{model_schema}.{lightgbm_model_name}"
-pytorch_path = f"{model_catalog}.{model_schema}.{pytorch_model_name}"
+xgboost_path = f"{model_catalog}.{model_schema}.{xgboost_model_name}"
 
 print(f"Endpoint: {endpoint_name}")
 print(f"Logistic: {logistic_path}")
 print(f"LightGBM: {lightgbm_path}")
-print(f"PyTorch:  {pytorch_path}")
+print(f"XGBoost:  {xgboost_path}")
 ```
 
 - [ ] **Step 2: Create notebook — Cell 2 (Resolve latest model versions)**
@@ -226,7 +226,7 @@ def latest_version(model_name: str) -> int:
 versions = {
     "logistic_regression": latest_version(logistic_path),
     "lightgbm": latest_version(lightgbm_path),
-    "pytorch_mlp": latest_version(pytorch_path),
+    "xgboost": latest_version(xgboost_path),
 }
 
 for name, version in versions.items():
@@ -265,9 +265,9 @@ served_entities = [
         scale_to_zero_enabled=True,
     ),
     ServedEntityInput(
-        name="pytorch_mlp",
-        entity_name=pytorch_path,
-        entity_version=str(versions["pytorch_mlp"]),
+        name="xgboost",
+        entity_name=xgboost_path,
+        entity_version=str(versions["xgboost"]),
         workload_type=ServingModelWorkloadType.CPU,
         workload_size="Small",
         scale_to_zero_enabled=True,
@@ -278,7 +278,7 @@ traffic_config = TrafficConfig(
     routes=[
         Route(served_model_name="logistic_regression", traffic_percentage=33),
         Route(served_model_name="lightgbm", traffic_percentage=33),
-        Route(served_model_name="pytorch_mlp", traffic_percentage=34),
+        Route(served_model_name="xgboost", traffic_percentage=34),
     ]
 )
 
@@ -398,7 +398,7 @@ If not already done:
 databricks bundle run create_dummy_data --target dev
 databricks bundle run train_logistic_regression --target dev
 databricks bundle run train_lightgbm --target dev
-databricks bundle run train_pytorch_mlp --target dev
+databricks bundle run train_xgboost --target dev
 ```
 
 Expected: each training job succeeds and prints a registered model version.
@@ -471,7 +471,7 @@ Use this job as the capstone after the three training jobs:
 
 1. **Same bundle pattern** — variable + YAML + notebook, just like training; only the notebook logic differs.
 2. **Runtime version resolution** — no pinned model versions in the bundle; the job always picks up the latest UC registration after retraining.
-3. **One endpoint, three models** — traffic split lets you A/B/C compare logistic regression, LightGBM, and PyTorch MLP on identical inputs.
+3. **One endpoint, three models** — traffic split lets you A/B/C compare logistic regression, LightGBM, and XGBoost on identical inputs.
 4. **Inference tables (legacy API)** — `auto_capture_config` logs requests to `{catalog}.{schema}.{endpoint}_payload` in UC. Databricks now recommends AI Gateway inference tables for new work; legacy tables are simpler to configure in a short demo notebook.
 5. **Minimal demo scope** — CPU Small, scale-to-zero, fixed 33/33/34 split; no AI Gateway, no GPU, no dynamic routing. Expect ~2–10 min deploy time and possible cold-start latency on first query.
 
