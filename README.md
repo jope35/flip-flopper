@@ -48,15 +48,15 @@ the main concept is that each model is converted to ONNX, wrapped as an MLflow p
 
 The endpoint can be called in two ways:
 - hit the endpoint normally and let Databricks route traffic across all served models
-- call an individual served model directly when you want `logistic_regression`, `lightgbm`, or `xgboost`
+- call an individual served model directly when you want `logistic_regression`, `lightgbm`, `xgboost`, `pytorch_mlp`, or `random_forest`
 
 # Highlights
 
-- 🩴 **One endpoint, three models**: `logistic_regression`, `lightgbm`, and `xgboost` are deployed as served entities behind the same Model Serving endpoint.
+- 🩴 **One endpoint, five models**: `logistic_regression`, `lightgbm`, `xgboost`, `pytorch_mlp`, and `random_forest` are deployed as served entities behind the same Model Serving endpoint.
 - 🎯 **Direct model calls**: use Databricks' individual served-model invocation path to bypass the endpoint traffic split when you want one specific model.
-- 📦 **ONNX-backed pyfunc contract**: each model returns the same columns: `target`, `proba`, and `model_name`.
+- 📦 **ONNX-backed pyfunc contract**: classical models return the same columns: `target`, `proba`, and `model_name` (`pytorch_mlp` is raw ONNX with a probability matrix).
 - 🧭 **Unity Catalog first**: generated data lands in a UC table, and trained models are registered as UC models.
-- ↔️ **Traffic split between models**: by default, the serving endpoint automatically splits incoming traffic across `logistic_regression`, `lightgbm`, and `xgboost` models, with a configurable ratio (default 34/33/33), letting you test multi-model serving or target a specific model directly.
+- ↔️ **Traffic split between models**: by default, the serving endpoint automatically splits incoming traffic across all five served models (20% each), letting you test multi-model serving or target a specific model directly.
 
 # Prerequisites
 
@@ -84,6 +84,8 @@ Useful references:
 │   ├── train_logistic_regression.yml      # trains and registers logistic_regression_onnx
 │   ├── train_lightgbm.yml                 # trains and registers lightgbm_onnx
 │   ├── train_xgboost.yml                  # trains and registers xgboost_onnx
+│   ├── train_pytorch_mlp.yml              # trains and registers pytorch_mlp_onnx
+│   ├── train_sparkml_random_forest.yml    # trains and registers sparkml_random_forest_onnx
 │   ├── deploy_serving_endpoint.yml        # creates or updates the serving endpoint
 │   └── run_pipeline.yml                   # orchestrates the full workflow
 ├── src/jobs/
@@ -91,7 +93,10 @@ Useful references:
 │   ├── train_logistic_regression.ipynb
 │   ├── train_lightgbm.ipynb
 │   ├── train_xgboost.ipynb
-│   └── deploy_serving_endpoint.ipynb
+│   ├── train_pytorch_mlp.ipynb
+│   ├── train_sparkml_random_forest.ipynb
+│   ├── deploy_serving_endpoint.ipynb
+│   └── query_serving_endpoint.ipynb
 └── tests/
 ```
 
@@ -108,6 +113,8 @@ The important bundle settings live in `databricks.yml`.
 | `model_name`            | `logistic_regression_onnx`  | registered logistic regression model |
 | `lightgbm_model_name`   | `lightgbm_onnx`             | registered LightGBM model            |
 | `xgboost_model_name`    | `xgboost_onnx`              | registered XGBoost model             |
+| `pytorch_mlp_model_name`| `pytorch_mlp_onnx`          | registered PyTorch MLP model         |
+| `sparkml_rf_model_name` | `sparkml_random_forest_onnx`| registered SparkML Random Forest     |
 | `serving_endpoint_name` | `flip_flopper_serving`      | Model Serving endpoint name          |
 
 The default `dev` target uses Databricks bundle development mode. The `prod` target uses production mode and an explicit workspace root path.
@@ -126,7 +133,7 @@ databricks bundle run "run_pipeline"
 The `run_pipeline` job runs the full demo:
 
 1. create dummy data
-2. train all three models
+2. train all five models in parallel (five concurrent job tasks on Free Edition — avoid other jobs while the pipeline runs)
 3. deploy or update the serving endpoint
 
 You can also run individual jobs:
@@ -136,6 +143,8 @@ databricks bundle run "create_dummy_data"
 databricks bundle run "train_logistic_regression"
 databricks bundle run "train_lightgbm"
 databricks bundle run "train_xgboost"
+databricks bundle run "train_pytorch_mlp"
+databricks bundle run "train_sparkml_random_forest"
 databricks bundle run "deploy_serving_endpoint"
 ```
 
@@ -156,96 +165,64 @@ create_dummy_data
         │
         ├── train_logistic_regression
         ├── train_lightgbm
-        └── train_xgboost
+        ├── train_xgboost
+        ├── train_pytorch_mlp
+        └── train_sparkml_random_forest
                     │
                     ▼
           deploy_serving_endpoint
 ```
 
-The three training jobs all read the same generated feature table, convert their fitted model to ONNX, wrap the ONNX artifact in an MLflow pyfunc, validate the pyfunc locally, and register it in Unity Catalog.
+The training jobs read the same generated feature table, convert their fitted model to ONNX, wrap the ONNX artifact in an MLflow pyfunc (except `pytorch_mlp`, which logs raw ONNX), validate locally where applicable, and register in Unity Catalog.
 
-The deployment job resolves the latest UC model versions at runtime and configures one endpoint with three served entities:
+SparkML Random Forest uses `onnxmltools.convert_sparkml` (experimental); see the [Databricks KB on target_opset](https://kb.databricks.com/machine-learning/spark-ml-to-onnx-model-conversion-does-not-produce-the-same-model-predictions-differ).
 
-| Served entity         | UC model variable     | Traffic |
-| --------------------- | --------------------- | ------- |
-| `logistic_regression` | `model_name`          | 34%     |
-| `lightgbm`            | `lightgbm_model_name` | 33%     |
-| `xgboost`             | `xgboost_model_name`  | 33%     |
+The deployment job resolves the latest UC model versions at runtime and configures one endpoint with five served entities:
 
-Because Free Edition workspaces limit Model Serving capacity, the deployment job may add served entities incrementally (one model at a time) when creating all three at once exceeds quota.
+| Served entity         | UC model variable          | Traffic |
+| --------------------- | -------------------------- | ------- |
+| `logistic_regression` | `model_name`               | 20%     |
+| `lightgbm`            | `lightgbm_model_name`      | 20%     |
+| `xgboost`             | `xgboost_model_name`       | 20%     |
+| `pytorch_mlp`         | `pytorch_mlp_model_name`   | 20%     |
+| `random_forest`       | `sparkml_rf_model_name`    | 20%     |
+
+Because Free Edition workspaces limit Model Serving capacity, the deployment job may add served entities incrementally when creating all five at once exceeds quota.
 
 # Why ONNX-backed pyfunc models?
 
 The trick in this repo is not that logistic regression, LightGBM, and XGBoost are fancy models. They are intentionally boring.
 
-The useful part is that different model libraries are normalized into the same serving shape:
+The useful part is that different model libraries are normalized into a common serving shape where possible:
 
 - the same 33 feature columns: `feature_000` through `feature_032`
-- the same output columns: `target`, `proba`, `model_name`
+- pyfunc models return `target`, `proba`, `model_name`
 - the same Databricks custom model serving request format
 
 That makes it easy to put multiple model implementations behind one endpoint and still know which model produced each response. The `model_name` output is especially handy when calling the shared endpoint, because Databricks traffic routing decides which served entity receives the request.
 
 # Querying the endpoint
 
-Set your workspace host and token first:
+The README examples live in `src/jobs/query_serving_endpoint.ipynb`. On Databricks serverless the job uses the workspace identity; locally, set `DATABRICKS_HOST` and `DATABRICKS_TOKEN` first.
+
+Run on serverless compute (after deploy):
+
+```bash
+# traffic split across all served models
+databricks bundle run "query_serving_endpoint"
+
+# one specific served model
+databricks bundle run "query_serving_endpoint" -- --served_model random_forest
+```
+
+Run locally:
 
 ```bash
 export DATABRICKS_HOST="https://dbc-b9d925fd-a82e.cloud.databricks.com"
 export DATABRICKS_TOKEN="<your-token>"
-```
 
-Query the endpoint traffic split:
-
-```python
-import json
-import os
-import urllib.request
-
-host = os.environ["DATABRICKS_HOST"].rstrip("/")
-token = os.environ["DATABRICKS_TOKEN"]
-endpoint = "flip_flopper_serving"
-
-record = {f"feature_{i:03d}": 0.0 for i in range(33)}
-payload = {"dataframe_records": [record]}
-
-request = urllib.request.Request(
-    f"{host}/serving-endpoints/{endpoint}/invocations",
-    headers={"Authorization": f"Bearer {token}"},
-    data=json.dumps(payload).encode("utf-8"),
-    method="POST",
-)
-request.add_header("Content-Type", "application/json")
-
-with urllib.request.urlopen(request, timeout=60) as response:
-    print(json.loads(response.read()))
-```
-
-Query one specific served model and ignore the traffic split:
-
-```python
-import json
-import os
-import urllib.request
-
-host = os.environ["DATABRICKS_HOST"].rstrip("/")
-token = os.environ["DATABRICKS_TOKEN"]
-endpoint = "flip_flopper_serving"
-served_model = "xgboost"  # logistic_regression, lightgbm, or xgboost
-
-record = {f"feature_{i:03d}": 0.0 for i in range(33)}
-payload = {"dataframe_records": [record]}
-
-request = urllib.request.Request(
-    f"{host}/serving-endpoints/{endpoint}/served-models/{served_model}/invocations",
-    headers={"Authorization": f"Bearer {token}"},
-    data=json.dumps(payload).encode("utf-8"),
-    method="POST",
-)
-request.add_header("Content-Type", "application/json")
-
-with urllib.request.urlopen(request, timeout=60) as response:
-    print(json.loads(response.read()))
+uv run python src/jobs/query_serving_endpoint.py
+uv run python src/jobs/query_serving_endpoint.py --served-model random_forest
 ```
 
 The response contains a `predictions` payload with the pyfunc output. Each row includes the model's own `model_name`, so shared-endpoint calls identify which model answered.
@@ -255,5 +232,7 @@ The response contains a `predictions` payload with the pyfunc output. Each row i
 - **Endpoint is not ready yet**: Model Serving deployment can take several minutes. The deployment notebook waits for `READY` and fails on unrecoverable update failures.
 - **Endpoint creation hits quota limits** (common on Free Edition): the deployment job first tries a bulk create, then falls back to adding served entities incrementally.
 - **Permission errors**: the endpoint creator needs access to the UC catalog, schema, and registered models.
-- **Unexpected prediction shape**: each training notebook validates `mlflow.pyfunc.load_model(...).predict(...)` before registration.
+- **Unexpected prediction shape**: each pyfunc training notebook validates `mlflow.pyfunc.load_model(...).predict(...)` before registration.
+- **SparkML ONNX parity**: `convert_sparkml` is experimental; ONNX probabilities may differ from Spark ML even when conversion succeeds. The training notebook smoke-tests output shape only.
+- **SparkML ONNX on serverless**: `onnxmltools` reads `spark.conf.get("spark.master")` during tree export, which serverless Spark Connect blocks. The notebook patches `save_read_sparkml_model_data` and writes tree metadata to the bundle-managed UC Volume `onnx_scratch` (`/Volumes/{catalog}/{schema}/onnx_scratch`).
 - **Wrong target objects**: remember that the `dev` target runs in bundle development mode, so deployed resource names and paths can be target-prefixed by Databricks.
