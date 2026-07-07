@@ -3,40 +3,143 @@ resources:
     run_pipeline:
       name: run_pipeline
       max_concurrent_runs: 1
+      environments:
+        - environment_key: dummy_data_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - scikit-learn
+        - environment_key: train_logistic_regression_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - scikit-learn
+              - skl2onnx
+              - onnx
+              - onnxruntime
+        - environment_key: train_lightgbm_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - lightgbm
+              - onnxmltools
+              - onnx
+              - onnxruntime
+        - environment_key: train_xgboost_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - xgboost
+              - onnxmltools
+              - onnx
+              - onnxruntime
+        - environment_key: train_pytorch_mlp_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - torch
+              - onnx
+              - onnxscript
+              - onnxruntime
+        - environment_key: train_sparkml_random_forest_env
+          spec:
+            client: "5"
+            dependencies:
+              - pandas
+              - onnxmltools
+              - onnx
+              - onnxconverter-common
+              - onnxruntime
+        - environment_key: deploy_env
+          spec:
+            client: "5"
+            dependencies:
+              - databricks-sdk
+              - mlflow
       tasks:
         - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.create_dummy_data.id}
+          environment_key: dummy_data_env
+          notebook_task:
+            notebook_path: ../src/jobs/create_dummy_data.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
 
         - task_key: train_logistic_regression
           depends_on:
             - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_logistic_regression.id}
+          environment_key: train_logistic_regression_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_logistic_regression.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              model_name: ${var.model_name}
 
         - task_key: train_lightgbm
           depends_on:
             - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_lightgbm.id}
+          environment_key: train_lightgbm_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_lightgbm.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              model_name: ${var.lightgbm_model_name}
 
         - task_key: train_xgboost
           depends_on:
             - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_xgboost.id}
+          environment_key: train_xgboost_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_xgboost.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              model_name: ${var.xgboost_model_name}
 
         - task_key: train_pytorch_mlp
           depends_on:
             - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_pytorch_mlp.id}
+          environment_key: train_pytorch_mlp_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_pytorch_mlp.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              model_name: ${var.pytorch_mlp_model_name}
 
         - task_key: train_sparkml_random_forest
           depends_on:
             - task_key: create_dummy_data
-          run_job_task:
-            job_id: ${resources.jobs.train_sparkml_random_forest.id}
+          environment_key: train_sparkml_random_forest_env
+          notebook_task:
+            notebook_path: ../src/jobs/train_sparkml_random_forest.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${resources.schemas.data.name}
+              table_name: ${var.table_name}
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              model_name: ${var.sparkml_rf_model_name}
 
         - task_key: deploy_serving_endpoint
           depends_on:
@@ -45,5 +148,15 @@ resources:
             - task_key: train_xgboost
             - task_key: train_pytorch_mlp
             - task_key: train_sparkml_random_forest
-          run_job_task:
-            job_id: ${resources.jobs.deploy_serving_endpoint.id}
+          environment_key: deploy_env
+          notebook_task:
+            notebook_path: ../src/jobs/deploy_serving_endpoint.py
+            base_parameters:
+              model_catalog: ${var.catalog}
+              model_schema: ${resources.schemas.model.name}
+              logistic_model_name: ${var.model_name}
+              lightgbm_model_name: ${var.lightgbm_model_name}
+              xgboost_model_name: ${var.xgboost_model_name}
+              pytorch_mlp_model_name: ${var.pytorch_mlp_model_name}
+              sparkml_rf_model_name: ${var.sparkml_rf_model_name}
+              endpoint_name: ${var.serving_endpoint_name}
