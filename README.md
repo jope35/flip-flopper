@@ -20,11 +20,11 @@
   <a href="https://docs.databricks.com/en/dev-tools/bundles/index.html">
     <img alt="Declarative Automation Bundles" src="https://img.shields.io/badge/Declarative%20Automation-Bundles-ff3621.svg" />
   </a>
-  <a href="https://github.com/revodatanl/polly-pony/blob/main/LICENSE">
+  <a href="https://github.com/jope35/flip-flopper/blob/main/LICENSE">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
-  <a href="https://github.com/revodatanl/polly-pony/commits/main">
-    <img alt="GitHub last commit (branch)" src="https://img.shields.io/github/last-commit/revodatanl/polly-pony/main" />
+  <a href="https://github.com/jope35/flip-flopper/commits/main">
+    <img alt="GitHub last commit (branch)" src="https://img.shields.io/github/last-commit/jope35/flip-flopper/main" />
   </a>
 </p>
 <br/>
@@ -44,7 +44,7 @@
 
 Flip-Flopper is a tiny, opinionated example of serving several classical ML models from **one Databricks Model Serving endpoint**.
 
-the main concept is that each model is converted to ONNX, wrapped as an MLflow pyfunc with the same input and output contract, registered in Unity Catalog, and deployed behind a single endpoint.
+The main concept is that each model is converted to ONNX, wrapped as an MLflow pyfunc with the same input and output contract, registered in Unity Catalog, and deployed behind a single endpoint.
 
 The endpoint can be called in two ways:
 - hit the endpoint normally and let Databricks route traffic across all served models
@@ -54,7 +54,7 @@ The endpoint can be called in two ways:
 
 - 🩴 **One endpoint, five models**: `logistic_regression`, `lightgbm`, `xgboost`, `pytorch_mlp`, and `random_forest` are deployed as served entities behind the same Model Serving endpoint.
 - 🎯 **Direct model calls**: use Databricks' individual served-model invocation path to bypass the endpoint traffic split when you want one specific model.
-- 📦 **ONNX-backed pyfunc contract**: classical models return the same columns: `target`, `proba`, and `model_name` (`pytorch_mlp` is raw ONNX with a probability matrix).
+- 📦 **ONNX-backed pyfunc contract**: all five models return the same columns: `target`, `proba`, and `model_name`.
 - 🧭 **Unity Catalog first**: generated data lands in a UC table, and trained models are registered as UC models.
 - ↔️ **Traffic split between models**: by default, the serving endpoint automatically splits incoming traffic across all five served models (20% each), letting you test multi-model serving or target a specific model directly.
 
@@ -86,7 +86,9 @@ Useful references:
 │   ├── train_xgboost.yml                  # trains and registers xgboost_onnx
 │   ├── train_pytorch_mlp.yml              # trains and registers pytorch_mlp_onnx
 │   ├── train_sparkml_random_forest.yml    # trains and registers sparkml_random_forest_onnx
+│   ├── onnx_scratch_volume.yml            # UC Volume scratch space for the SparkML ONNX export
 │   ├── deploy_serving_endpoint.yml        # creates or updates the serving endpoint
+│   ├── query_serving_endpoint.yml         # sends a test request to the endpoint
 │   └── run_pipeline.yml                   # orchestrates the full workflow
 ├── src/jobs/
 │   ├── create_dummy_data.ipynb
@@ -106,7 +108,7 @@ The important bundle settings live in `databricks.yml`.
 
 | Variable                | Default                     | Meaning                              |
 | ----------------------- | --------------------------- | ------------------------------------ |
-| `catalog`               | `workspace` in both targets | Unity Catalog catalog                |
+| `catalog`               | `workspace`                 | Unity Catalog catalog                |
 | `schema`                | `data`                      | schema for generated data            |
 | `model_schema`          | `model`                     | schema for registered models         |
 | `table_name`            | `generated_data`            | generated feature table              |
@@ -117,7 +119,7 @@ The important bundle settings live in `databricks.yml`.
 | `sparkml_rf_model_name` | `sparkml_random_forest_onnx`| registered SparkML Random Forest     |
 | `serving_endpoint_name` | `flip_flopper_serving`      | Model Serving endpoint name          |
 
-The default `dev` target uses Databricks bundle development mode. The `prod` target uses production mode and an explicit workspace root path.
+The single `dev` target uses Databricks bundle development mode, so deployed resources and schema names get a `dev_<your_user>` prefix. Point `workspace.host` in `databricks.yml` at your own workspace before deploying.
 
 # Quickstart
 
@@ -146,14 +148,7 @@ databricks bundle run "train_xgboost"
 databricks bundle run "train_pytorch_mlp"
 databricks bundle run "train_sparkml_random_forest"
 databricks bundle run "deploy_serving_endpoint"
-```
-
-To deploy to production:
-
-```bash
-databricks bundle validate --target prod
-databricks bundle deploy --target prod
-databricks bundle run "run_pipeline" --target prod
+databricks bundle run "query_serving_endpoint"
 ```
 
 # How the pipeline works
@@ -173,7 +168,7 @@ create_dummy_data
           deploy_serving_endpoint
 ```
 
-The training jobs read the same generated feature table, convert their fitted model to ONNX, wrap the ONNX artifact in an MLflow pyfunc (except `pytorch_mlp`, which logs raw ONNX), validate locally where applicable, and register in Unity Catalog.
+The training jobs read the same generated feature table, convert their fitted model to ONNX, wrap the ONNX artifact in an MLflow pyfunc, validate the prediction output shape, and register in Unity Catalog.
 
 SparkML Random Forest uses `onnxmltools.convert_sparkml` (experimental); see the [Databricks KB on target_opset](https://kb.databricks.com/machine-learning/spark-ml-to-onnx-model-conversion-does-not-produce-the-same-model-predictions-differ).
 
@@ -203,9 +198,7 @@ That makes it easy to put multiple model implementations behind one endpoint and
 
 # Querying the endpoint
 
-The README examples live in `src/jobs/query_serving_endpoint.ipynb`. On Databricks serverless the job uses the workspace identity; locally, set `DATABRICKS_HOST` and `DATABRICKS_TOKEN` first.
-
-Run on serverless compute (after deploy):
+The easiest way is the `query_serving_endpoint` job (`src/jobs/query_serving_endpoint.ipynb`), which runs on serverless compute and authenticates as the workspace identity:
 
 ```bash
 # traffic split across all served models
@@ -215,14 +208,24 @@ databricks bundle run "query_serving_endpoint"
 databricks bundle run "query_serving_endpoint" -- --served_model random_forest
 ```
 
-Run locally:
+You can also call the REST API directly from your machine. The only difference between the two invocation styles is the URL path — `/served-models/<name>/` targets one model, omitting it lets the endpoint's traffic split decide:
 
 ```bash
-export DATABRICKS_HOST="https://dbc-b9d925fd-a82e.cloud.databricks.com"
+export DATABRICKS_HOST="https://<your-workspace>.cloud.databricks.com"
 export DATABRICKS_TOKEN="<your-token>"
 
-uv run python src/jobs/query_serving_endpoint.py
-uv run python src/jobs/query_serving_endpoint.py --served-model random_forest
+# one request row with all 33 features set to 0.0
+payload=$(python3 -c 'import json; print(json.dumps({"dataframe_records": [{f"feature_{i:03d}": 0.0 for i in range(33)}]}))')
+
+# traffic split across all served models
+curl -s -X POST "$DATABRICKS_HOST/serving-endpoints/flip_flopper_serving/invocations" \
+  -H "Authorization: Bearer $DATABRICKS_TOKEN" -H "Content-Type: application/json" \
+  -d "$payload"
+
+# one specific served model
+curl -s -X POST "$DATABRICKS_HOST/serving-endpoints/flip_flopper_serving/served-models/random_forest/invocations" \
+  -H "Authorization: Bearer $DATABRICKS_TOKEN" -H "Content-Type: application/json" \
+  -d "$payload"
 ```
 
 The response contains a `predictions` payload with the pyfunc output. Each row includes the model's own `model_name`, so shared-endpoint calls identify which model answered.
