@@ -91,14 +91,14 @@ Useful references:
 │   ├── query_serving_endpoint.yml         # sends a test request to the endpoint
 │   └── run_pipeline.yml                   # orchestrates the full workflow
 ├── src/jobs/
-│   ├── create_dummy_data.ipynb
-│   ├── train_logistic_regression.ipynb
-│   ├── train_lightgbm.ipynb
-│   ├── train_xgboost.ipynb
-│   ├── train_pytorch_mlp.ipynb
-│   ├── train_sparkml_random_forest.ipynb
-│   ├── deploy_serving_endpoint.ipynb
-│   └── query_serving_endpoint.ipynb
+│   ├── create_dummy_data.py
+│   ├── train_logistic_regression.py
+│   ├── train_lightgbm.py
+│   ├── train_xgboost.py
+│   ├── train_pytorch_mlp.py
+│   ├── train_sparkml_random_forest.py
+│   ├── deploy_serving_endpoint.py
+│   └── query_serving_endpoint.py
 └── tests/
 ```
 
@@ -198,7 +198,7 @@ That makes it easy to put multiple model implementations behind one endpoint and
 
 # Querying the endpoint
 
-The easiest way is the `query_serving_endpoint` job (`src/jobs/query_serving_endpoint.ipynb`), which runs on serverless compute and authenticates as the workspace identity:
+The easiest way is the `query_serving_endpoint` job (`src/jobs/query_serving_endpoint.py`), which runs on serverless compute and authenticates as the workspace identity:
 
 ```bash
 # traffic split across all served models

@@ -29,7 +29,7 @@ resources:
         - task_key: train_lightgbm
           environment_key: train_env
           notebook_task:
-            notebook_path: ../src/jobs/train_lightgbm.ipynb
+            notebook_path: ../src/jobs/train_lightgbm.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema: "{{job.parameters.schema}}"

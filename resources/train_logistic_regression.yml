@@ -29,7 +29,7 @@ resources:
         - task_key: train_logistic_regression
           environment_key: train_env
           notebook_task:
-            notebook_path: ../src/jobs/train_logistic_regression.ipynb
+            notebook_path: ../src/jobs/train_logistic_regression.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema: "{{job.parameters.schema}}"

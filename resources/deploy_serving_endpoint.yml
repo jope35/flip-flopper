@@ -30,7 +30,7 @@ resources:
         - task_key: deploy_serving_endpoint
           environment_key: deploy_env
           notebook_task:
-            notebook_path: ../src/jobs/deploy_serving_endpoint.ipynb
+            notebook_path: ../src/jobs/deploy_serving_endpoint.py
             base_parameters:
               model_catalog: "{{job.parameters.model_catalog}}"
               model_schema: "{{job.parameters.model_schema}}"

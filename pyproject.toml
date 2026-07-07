@@ -30,3 +30,4 @@ packages = ["src"]
 
 [tool.ruff]
 line-length = 120
+exclude = ["src/jobs"]

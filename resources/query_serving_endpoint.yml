@@ -15,7 +15,7 @@ resources:
         - task_key: query_serving_endpoint
           environment_key: query_env
           notebook_task:
-            notebook_path: ../src/jobs/query_serving_endpoint.ipynb
+            notebook_path: ../src/jobs/query_serving_endpoint.py
             base_parameters:
               endpoint: "{{job.parameters.endpoint}}"
               served_model: "{{job.parameters.served_model}}"

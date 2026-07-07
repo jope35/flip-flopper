@@ -20,7 +20,7 @@ resources:
         - task_key: create_dummy_data
           environment_key: dummy_data_env
           notebook_task:
-            notebook_path: ../src/jobs/create_dummy_data.ipynb
+            notebook_path: ../src/jobs/create_dummy_data.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema: "{{job.parameters.schema}}"

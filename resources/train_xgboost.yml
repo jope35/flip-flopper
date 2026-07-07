@@ -29,7 +29,7 @@ resources:
         - task_key: train_xgboost
           environment_key: train_env
           notebook_task:
-            notebook_path: ../src/jobs/train_xgboost.ipynb
+            notebook_path: ../src/jobs/train_xgboost.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema: "{{job.parameters.schema}}"

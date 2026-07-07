@@ -29,7 +29,7 @@ resources:
         - task_key: train_pytorch_mlp
           environment_key: train_env
           notebook_task:
-            notebook_path: ../src/jobs/train_pytorch_mlp.ipynb
+            notebook_path: ../src/jobs/train_pytorch_mlp.py
             base_parameters:
               catalog: "{{job.parameters.catalog}}"
               schema: "{{job.parameters.schema}}"
