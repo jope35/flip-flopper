@@ -3,7 +3,7 @@
 <h2><p align="center">Serve multiple classical ML models from one Databricks endpoint</p></h2>
 
 <p align="center">
-  <img src="artifacts/img/flip.gif" alt="Flip-Flopper Demo Animation" width="700"/>
+  <img src="artifacts/img/light_flipflopper.gif" alt="Flip-Flopper Demo Animation" width="700"/>
 </p>
 
 
