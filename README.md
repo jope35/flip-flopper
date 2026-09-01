@@ -80,16 +80,9 @@ Useful references:
 .
 ├── databricks.yml                         # bundle variables, schemas, targets
 ├── resources/
-│   ├── create_dummy_data.yml              # creates the demo feature table
-│   ├── train_logistic_regression.yml      # trains and registers logistic_regression_onnx
-│   ├── train_lightgbm.yml                 # trains and registers lightgbm_onnx
-│   ├── train_xgboost.yml                  # trains and registers xgboost_onnx
-│   ├── train_pytorch_mlp.yml              # trains and registers pytorch_mlp_onnx
-│   ├── train_sparkml_random_forest.yml    # trains and registers sparkml_random_forest_onnx
-│   ├── onnx_scratch_volume.yml            # UC Volume scratch space for the SparkML ONNX export
-│   ├── deploy_serving_endpoint.yml        # creates or updates the serving endpoint
+│   ├── run_pipeline.yml                   # full demo pipeline (data → train → deploy)
 │   ├── query_serving_endpoint.yml         # sends a test request to the endpoint
-│   └── run_pipeline.yml                   # orchestrates the full workflow
+│   └── onnx_scratch_volume.yml            # UC Volume scratch space for the SparkML ONNX export
 ├── src/jobs/
 │   ├── create_dummy_data.py
 │   ├── train_logistic_regression.py
@@ -138,22 +131,15 @@ The `run_pipeline` job runs the full demo:
 2. train all five models in parallel (five concurrent job tasks on Free Edition — avoid other jobs while the pipeline runs)
 3. deploy or update the serving endpoint
 
-You can also run individual jobs:
+After the pipeline completes, query the endpoint:
 
 ```bash
-databricks bundle run "create_dummy_data"
-databricks bundle run "train_logistic_regression"
-databricks bundle run "train_lightgbm"
-databricks bundle run "train_xgboost"
-databricks bundle run "train_pytorch_mlp"
-databricks bundle run "train_sparkml_random_forest"
-databricks bundle run "deploy_serving_endpoint"
 databricks bundle run "query_serving_endpoint"
 ```
 
 # How the pipeline works
 
-`run_pipeline` is the orchestrator job:
+`run_pipeline` is a single multi-task job:
 
 ```text
 create_dummy_data
