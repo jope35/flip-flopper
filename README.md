@@ -2,6 +2,12 @@
 <h1 style="font-size: 6em;"><p align="center"> 🩴🩴🩴 Flip-Flopper 🩴🩴🩴 </p></h1>
 <h2><p align="center">Serve multiple classical ML models from one Databricks endpoint</p></h2>
 
+<p align="center">
+  <img src="artifacts/img/flip.gif" alt="Flip-Flopper Demo Animation" width="700"/>
+</p>
+
+
+
 <h3><p align="center">A small Databricks bundle for ONNX-backed multi-model serving</p></h3>
 
 <p align="center">
@@ -99,18 +105,18 @@ Useful references:
 
 The important bundle settings live in `databricks.yml`.
 
-| Variable                | Default                     | Meaning                              |
-| ----------------------- | --------------------------- | ------------------------------------ |
-| `catalog`               | `workspace`                 | Unity Catalog catalog                |
-| `schema`                | `data`                      | schema for generated data            |
-| `model_schema`          | `model`                     | schema for registered models         |
-| `table_name`            | `generated_data`            | generated feature table              |
-| `model_name`            | `logistic_regression_onnx`  | registered logistic regression model |
-| `lightgbm_model_name`   | `lightgbm_onnx`             | registered LightGBM model            |
-| `xgboost_model_name`    | `xgboost_onnx`              | registered XGBoost model             |
-| `pytorch_mlp_model_name`| `pytorch_mlp_onnx`          | registered PyTorch MLP model         |
-| `sparkml_rf_model_name` | `sparkml_random_forest_onnx`| registered SparkML Random Forest     |
-| `serving_endpoint_name` | `flip_flopper_serving`      | Model Serving endpoint name          |
+| Variable                 | Default                      | Meaning                              |
+| ------------------------ | ---------------------------- | ------------------------------------ |
+| `catalog`                | `workspace`                  | Unity Catalog catalog                |
+| `schema`                 | `data`                       | schema for generated data            |
+| `model_schema`           | `model`                      | schema for registered models         |
+| `table_name`             | `generated_data`             | generated feature table              |
+| `model_name`             | `logistic_regression_onnx`   | registered logistic regression model |
+| `lightgbm_model_name`    | `lightgbm_onnx`              | registered LightGBM model            |
+| `xgboost_model_name`     | `xgboost_onnx`               | registered XGBoost model             |
+| `pytorch_mlp_model_name` | `pytorch_mlp_onnx`           | registered PyTorch MLP model         |
+| `sparkml_rf_model_name`  | `sparkml_random_forest_onnx` | registered SparkML Random Forest     |
+| `serving_endpoint_name`  | `flip_flopper_serving`       | Model Serving endpoint name          |
 
 The single `dev` target uses Databricks bundle development mode, so deployed resources and schema names get a `dev_<your_user>` prefix. Point `workspace.host` in `databricks.yml` at your own workspace before deploying.
 
@@ -160,13 +166,13 @@ SparkML Random Forest uses `onnxmltools.convert_sparkml` (experimental); see the
 
 The deployment job resolves the latest UC model versions at runtime and configures one endpoint with five served entities:
 
-| Served entity         | UC model variable          | Traffic |
-| --------------------- | -------------------------- | ------- |
-| `logistic_regression` | `model_name`               | 20%     |
-| `lightgbm`            | `lightgbm_model_name`      | 20%     |
-| `xgboost`             | `xgboost_model_name`       | 20%     |
-| `pytorch_mlp`         | `pytorch_mlp_model_name`   | 20%     |
-| `random_forest`       | `sparkml_rf_model_name`    | 20%     |
+| Served entity         | UC model variable        | Traffic |
+| --------------------- | ------------------------ | ------- |
+| `logistic_regression` | `model_name`             | 20%     |
+| `lightgbm`            | `lightgbm_model_name`    | 20%     |
+| `xgboost`             | `xgboost_model_name`     | 20%     |
+| `pytorch_mlp`         | `pytorch_mlp_model_name` | 20%     |
+| `random_forest`       | `sparkml_rf_model_name`  | 20%     |
 
 Because Free Edition workspaces limit Model Serving capacity, the deployment job may add served entities incrementally when creating all five at once exceeds quota.
 
