@@ -1,0 +1,6 @@
+resources:
+  volumes:
+    onnx_scratch:
+      name: onnx_scratch
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.data.name}

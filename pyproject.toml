@@ -21,9 +21,6 @@ dev = [
     "ipykernel",
 ]
 
-[project.scripts]
-main = "flip_flopper.main:main"
-
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -33,3 +30,4 @@ packages = ["src"]
 
 [tool.ruff]
 line-length = 120
+exclude = ["src/jobs"]

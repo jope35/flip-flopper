@@ -1,0 +1,21 @@
+resources:
+  jobs:
+    query_serving_endpoint:
+      name: query_serving_endpoint
+      parameters:
+        - name: endpoint
+          default: ${var.serving_endpoint_name}
+        - name: served_model
+          default: ""
+      environments:
+        - environment_key: query_env
+          spec:
+            client: "5"
+      tasks:
+        - task_key: query_serving_endpoint
+          environment_key: query_env
+          notebook_task:
+            notebook_path: ../src/jobs/query_serving_endpoint.py
+            base_parameters:
+              endpoint: "{{job.parameters.endpoint}}"
+              served_model: "{{job.parameters.served_model}}"
